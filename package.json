@@ -18,7 +18,8 @@
     "test:all": "bun run test && bun run test:e2e",
     "check": "astro check",
     "smoke:prod": "bun run scripts/smoke-prod.ts",
-    "demo:local": "bun run scripts/local.ts"
+    "demo:local": "bun run scripts/local.ts",
+    "playwright:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@astrojs/vercel": "^11.0.17",

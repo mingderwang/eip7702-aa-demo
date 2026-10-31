@@ -1,0 +1,3 @@
+[test]
+# Playwright specs live in tests/e2e and must not be collected by `bun test`.
+pathIgnorePatterns = ["tests/e2e/**"]
