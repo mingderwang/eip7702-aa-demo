@@ -1,0 +1,195 @@
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout title="EIP-7702 Smart Account Demo">
+  <main class="shell">
+    <header class="hero">
+      <div class="hero-top">
+        <span class="pill" data-testid="chain-badge" id="chain-badge">connecting…</span>
+        <span class="pill ghost" data-testid="faucet-badge" id="faucet-badge">faucet: <span id="faucet-amount">—</span> ETH</span>
+      </div>
+
+      <h1>EIP-7702 <em>smart account</em>, end to end</h1>
+
+      <p class="lede">
+        A brand-new EOA delegates to a batch-executor contract and runs a batched transaction in a
+        single type-<code>0x04</code> transaction. Every signature is produced in this tab — no wallet
+        extension, no bundler, no paymaster, no third party.
+      </p>
+
+      <dl class="meta">
+        <div>
+          <dt>delegation target</dt>
+          <dd><a id="impl-address" data-testid="impl-address">—</a></dd>
+        </div>
+        <div>
+          <dt>demo faucet</dt>
+          <dd><span id="faucet-address" data-testid="faucet-address">—</span></dd>
+        </div>
+        <div>
+          <dt>chain id</dt>
+          <dd><span id="chain-id" data-testid="chain-id">—</span></dd>
+        </div>
+      </dl>
+    </header>
+
+    <section class="steps" aria-label="demo steps">
+      <article class="card step">
+        <div class="step-head">
+          <span class="step-num">1</span>
+          <h2>Create an account</h2>
+          <span class="status" data-testid="step1-status" data-status="idle">idle</span>
+        </div>
+        <p>A fresh secp256k1 keypair is generated in this tab. The private key never leaves the browser and is not stored anywhere.</p>
+        <button class="btn" id="btn-create" data-testid="btn-create">Generate account</button>
+        <dl class="kv">
+          <div><dt>address</dt><dd id="aa-address" data-testid="aa-address">—</dd></div>
+          <div><dt>nonce</dt><dd id="aa-nonce" data-testid="aa-nonce">—</dd></div>
+          <div><dt>code</dt><dd id="aa-code" data-testid="aa-code">—</dd></div>
+        </dl>
+        <details class="key">
+          <summary>reveal ephemeral private key</summary>
+          <code id="aa-key" data-testid="aa-key">—</code>
+        </details>
+      </article>
+
+      <article class="card step">
+        <div class="step-head">
+          <span class="step-num">2</span>
+          <h2>Fund from the faucet</h2>
+          <span class="status" data-testid="step2-status" data-status="idle">idle</span>
+        </div>
+        <p>The demo faucet sends testnet ETH to the new address. This is the only transaction signed by anyone other than your new account.</p>
+        <button class="btn" id="btn-fund" data-testid="btn-fund" disabled>Request testnet ETH</button>
+        <dl class="kv">
+          <div><dt>faucet tx</dt><dd><a id="fund-tx" data-testid="fund-tx">—</a></dd></div>
+          <div><dt>balance after funding</dt><dd id="funded-balance" data-testid="funded-balance">—</dd></div>
+        </dl>
+      </article>
+
+      <article class="card step">
+        <div class="step-head">
+          <span class="step-num">3</span>
+          <h2>Delegate &amp; execute a batch</h2>
+          <span class="status" data-testid="step3-status" data-status="idle">idle</span>
+        </div>
+        <p>One type-0x04 transaction carries the EIP-7702 authorization and a two-call batch. Gas is paid by the new account from the ETH it just received.</p>
+        <ul class="calls">
+          <li><span>call 1</span><span><b id="call-a-amount">0.001 ETH</b> → <span id="call-a-to">recipient A</span></span></li>
+          <li><span>call 2</span><span><b id="call-b-amount">0.0005 ETH</b> → <span id="call-b-to">recipient B</span></span></li>
+        </ul>
+        <button class="btn primary" id="btn-execute" data-testid="btn-execute" disabled>Sign authorization + execute</button>
+        <dl class="kv">
+          <div><dt>transaction</dt><dd><a id="exec-tx" data-testid="exec-tx">—</a></dd></div>
+          <div><dt>type</dt><dd id="exec-type" data-testid="exec-type">—</dd></div>
+          <div><dt>gas used</dt><dd id="exec-gas" data-testid="exec-gas">—</dd></div>
+          <div><dt>fee paid by account</dt><dd id="exec-fee" data-testid="exec-fee">—</dd></div>
+        </dl>
+      </article>
+
+      <article class="card step">
+        <div class="step-head">
+          <span class="step-num">4</span>
+          <h2>Verify the result</h2>
+          <span class="status" data-testid="step4-status" data-status="idle">idle</span>
+        </div>
+        <p>The account now carries the delegation designator and answers ERC-1271 signature checks itself. Send one more (plain type-2) transaction to prove the account stays abstracted.</p>
+        <div class="badges">
+          <span class="check" data-testid="verify-code" data-ok="false">delegation designator</span>
+          <span class="check" data-testid="verify-type" data-ok="false">tx type 0x04</span>
+          <span class="check" data-testid="verify-erc1271" data-ok="false">ERC-1271 valid</span>
+          <span class="check" data-testid="verify-erc1271-bad" data-ok="false">forged signature rejected</span>
+        </div>
+        <button class="btn" id="btn-second" data-testid="btn-second" disabled>Send another transaction</button>
+        <dl class="kv">
+          <div><dt>second tx</dt><dd><a id="second-tx" data-testid="second-tx">—</a></dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="card-head">
+          <h2>Balances</h2>
+          <span class="hint">before / after the batched transaction</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>account</th>
+              <th>before</th>
+              <th>after</th>
+              <th>Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th><span class="dot aa"></span>AA account</th>
+              <td id="balance-aa-before" data-testid="balance-aa-before">—</td>
+              <td id="balance-aa-after" data-testid="balance-aa-after">—</td>
+              <td id="balance-aa-delta" data-testid="balance-aa-delta">—</td>
+            </tr>
+            <tr>
+              <th><span class="dot ra"></span>recipient A</th>
+              <td id="balance-ra-before" data-testid="balance-ra-before">—</td>
+              <td id="balance-ra-after" data-testid="balance-ra-after">—</td>
+              <td id="balance-ra-delta" data-testid="balance-ra-delta">—</td>
+            </tr>
+            <tr>
+              <th><span class="dot rb"></span>recipient B</th>
+              <td id="balance-rb-before" data-testid="balance-rb-before">—</td>
+              <td id="balance-rb-after" data-testid="balance-rb-after">—</td>
+              <td id="balance-rb-delta" data-testid="balance-rb-delta">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card log-card">
+        <div class="card-head">
+          <h2>Activity</h2>
+          <button class="link" id="btn-reset" data-testid="btn-reset">new session</button>
+        </div>
+        <pre id="log" data-testid="log"></pre>
+      </article>
+    </section>
+
+    <section class="explain">
+      <article class="card">
+        <h3>What just happened</h3>
+        <ol>
+          <li>The page generated a keypair locally and derived its address.</li>
+          <li>The faucet sent testnet ETH to that address.</li>
+          <li>The key signed an EIP-7702 authorization for the batch executor.</li>
+          <li>A type-0x04 transaction embedded that authorization and called <code>execute</code> on itself.</li>
+          <li><code>eth_getCode</code> now returns <code>0xef0100…</code>: the EOA is a smart account.</li>
+        </ol>
+      </article>
+      <article class="card">
+        <h3>Why this is account abstraction</h3>
+        <p>
+          The account owns its code, batches calls atomically, validates signatures through ERC-1271 and
+          pays its own gas. No external wallet signs for it. Because the delegation target only accepts
+          self-calls, nobody else can move its funds.
+        </p>
+      </article>
+      <article class="card">
+        <h3>Verify it yourself</h3>
+        <p>
+          Open the transaction on the explorer and inspect the <code>authorizationList</code> field, or call
+          <code>eth_getCode</code> on the account address. Every number on this page is read back from the
+          chain, not from local state.
+        </p>
+      </article>
+    </section>
+
+    <footer class="note">
+      Testnet demo · ephemeral keys · the faucet is rate-limited and idempotent per address
+    </footer>
+  </main>
+
+  <script>
+    import '../scripts/demo'
+  </script>
+</Layout>

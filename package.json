@@ -1,0 +1,32 @@
+{
+  "name": "eip7702-aa-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "compile": "bun run scripts/compile.ts",
+    "deploy:impl": "bun run scripts/deploy-impl.ts",
+    "proof:sepolia": "bun run scripts/proof-sepolia.ts",
+    "test": "bun test tests/unit tests/integration",
+    "test:e2e": "playwright test",
+    "test:all": "bun run test && bun run test:e2e",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^11.0.17",
+    "astro": "^7.4.4",
+    "viem": "^2.57.13"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.0.0",
+    "solc": "^0.8.38",
+    "typescript": "^5.9.0"
+  }
+}
