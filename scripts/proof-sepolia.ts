@@ -55,7 +55,7 @@ function addrLink(chainId: number, address: string) {
 
 async function main() {
   const config = getConfig()
-  if (config.chainId !== 11155111) {
+  if (config.chainId !== 11155111 && process.env.PROOF_ALLOW_ANY_CHAIN !== '1') {
     throw new Error(`proof:sepolia needs CHAIN_ID=11155111 (got ${config.chainId})`)
   }
   if (!config.implementation) {
@@ -184,7 +184,8 @@ async function main() {
     ['recipient B', recipientBBalance - CALL_B, recipientBBalance],
   ] as const
 
-  const markdown = `# Sepolia proof — EIP-7702 smart account
+  const network = config.chainId === 11155111 ? 'Sepolia' : `chain ${config.chainId}`
+  const markdown = `# ${network} proof — EIP-7702 smart account
 
 Generated **${now}** by \`bun run proof:sepolia\`.
 
@@ -192,7 +193,7 @@ Generated **${now}** by \`bun run proof:sepolia\`.
 
 | item | value |
 | --- | --- |
-| chain | Sepolia (${config.chainId}) |
+| chain | ${network} (${config.chainId}) |
 | delegation target | ${addrLink(config.chainId, config.implementation)} |
 | new AA account | ${addrLink(config.chainId, account.address)} |
 | faucet | ${addrLink(config.chainId, funding.faucet)} |
@@ -228,8 +229,9 @@ bun run proof:sepolia
 \`\`\`
 `
 
+  const proofFile = config.chainId === 11155111 ? 'docs/PROOF.md' : 'docs/PROOF.local.md'
   mkdirSync(resolve(root, 'docs'), { recursive: true })
-  writeFileSync(resolve(root, 'docs/PROOF.md'), markdown)
+  writeFileSync(resolve(root, proofFile), markdown)
 
   mkdirSync(resolve(root, 'artifacts'), { recursive: true })
   writeFileSync(
@@ -238,6 +240,7 @@ bun run proof:sepolia
       {
         generatedAt: now,
         chainId: config.chainId,
+        network,
         implementation: config.implementation,
         account: account.address,
         faucet: funding.faucet,
@@ -257,7 +260,7 @@ bun run proof:sepolia
     ),
   )
 
-  console.log(`\nwrote docs/PROOF.md and artifacts/proof-sepolia.json`)
+  console.log(`\nwrote ${proofFile} and artifacts/proof-sepolia.json`)
   console.log(`${passed}/${checks.length} checks passed`)
   if (failed > 0) process.exit(1)
 }

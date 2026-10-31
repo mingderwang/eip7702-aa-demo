@@ -1,13 +1,37 @@
 import { expect, test } from '@playwright/test'
 import { createWalletClient, http } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { anvil } from 'viem/chains'
+import { resolveChain } from '../../src/lib/chain'
 
 /**
- * End-to-end proof of the demo on a real EVM node (anvil, Prague hardfork):
+ * End-to-end proof of the demo on a real EVM node (anvil locally, Sepolia when BASE_URL is set):
  * the page creates a key, funds it, signs an EIP-7702 authorization + type-4 batch,
  * and the balances shown on screen are read back from the chain.
  */
+const isLocal = !process.env.BASE_URL
+
+test('the app loads and can generate an account', async ({ page }) => {
+  const consoleErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+  page.on('pageerror', (error) => consoleErrors.push(error.message))
+
+  await page.goto('/')
+  await expect(page.getByTestId('chain-badge')).toContainText(isLocal ? 'Anvil' : 'Sepolia')
+  await expect(page.getByTestId('impl-address')).not.toHaveText('not deployed')
+
+  await page.getByTestId('btn-create').click()
+  await expect(page.getByTestId('step1-status')).toHaveAttribute('data-status', 'done')
+
+  const address = (await page.getByTestId('aa-address').textContent())?.trim() ?? ''
+  expect(address).toMatch(/^0x[0-9a-fA-F]{40}$/)
+  await expect(page.getByTestId('aa-code')).toHaveText('0x')
+  await expect(page.getByTestId('aa-nonce')).toHaveText('0')
+
+  expect(consoleErrors).toEqual([])
+})
+
 test('create → fund → delegate + batch → verify balances', async ({ page }) => {
   const consoleErrors: string[] = []
   page.on('console', (message) => {
@@ -18,8 +42,7 @@ test('create → fund → delegate + batch → verify balances', async ({ page }
   await page.goto('/')
 
   // chain + deployment are wired up
-  await expect(page.getByTestId('chain-badge')).toContainText('Anvil')
-  await expect(page.getByTestId('chain-badge')).toContainText('31337')
+  await expect(page.getByTestId('chain-badge')).toContainText(isLocal ? 'Anvil' : 'Sepolia')
   await expect(page.getByTestId('impl-address')).not.toHaveText('not deployed')
   await expect(page.getByTestId('faucet-badge')).toContainText('0.01')
 
@@ -31,7 +54,6 @@ test('create → fund → delegate + batch → verify balances', async ({ page }
   const address = (await page.getByTestId('aa-address').textContent())?.trim() ?? ''
   expect(address).toMatch(/^0x[0-9a-fA-F]{40}$/)
   await expect(page.getByTestId('aa-code')).toHaveText('0x')
-  await expect(page.getByTestId('aa-nonce')).toHaveText('0')
 
   // 2. fund
   await page.getByTestId('btn-fund').click()
@@ -108,12 +130,15 @@ test('the relay refuses unsupported transaction types', async ({ request }) => {
   expect(body.code).toBe('UNSUPPORTED_TX_TYPE')
 })
 
-test('the relay refuses type-2 transactions from non-delegated accounts', async ({ request }) => {
+test('the relay refuses type-2 transactions from non-delegated accounts', async ({ request, baseURL }) => {
+  const configResponse = await request.get('/api/config')
+  const config = (await configResponse.json()) as { chainId: number }
+
   const account = privateKeyToAccount(generatePrivateKey())
   const wallet = createWalletClient({
     account,
-    chain: anvil,
-    transport: http('http://127.0.0.1:4322/api/rpc'),
+    chain: resolveChain(config.chainId),
+    transport: http(`${baseURL}/api/rpc`),
   })
 
   const raw = await wallet.signTransaction({
@@ -123,7 +148,7 @@ test('the relay refuses type-2 transactions from non-delegated accounts', async 
     gas: 21_000n,
     maxFeePerGas: 2_000_000_000n,
     maxPriorityFeePerGas: 1_000_000_000n,
-    chainId: anvil.id,
+    chainId: config.chainId,
   })
 
   const response = await request.post('/api/broadcast', { data: { raw } })

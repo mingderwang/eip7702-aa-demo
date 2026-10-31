@@ -1,5 +1,7 @@
 # EIP-7702 smart account demo
 
+[![CI](https://github.com/mingderwang/eip7702-aa-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/mingderwang/eip7702-aa-demo/actions/workflows/ci.yml)
+
 An end-to-end, working demo of [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) account abstraction in TypeScript:
 
 1. **Create** a brand-new account (keypair generated in the browser).
@@ -9,7 +11,7 @@ An end-to-end, working demo of [EIP-7702](https://eips.ethereum.org/EIPS/eip-770
 
 No wallet extension, no bundler, no paymaster, no third-party SDK. The page signs everything locally; the server only relays bytes and runs the faucet.
 
-- **Live demo:** _added after deployment_
+- **Live demo:** <https://eip7702-aa-demo.vercel.app>
 - **Sepolia proof:** [`docs/PROOF.md`](docs/PROOF.md)
 - **Delegation target:** printed by `bun run deploy:impl`
 
@@ -96,6 +98,8 @@ Environment variables:
 ```bash
 bun test          # unit + integration (spawns anvil --hardfork prague)
 bun run test:e2e  # Playwright: real browser, real chain, asserts on-page balances
+BASE_URL=https://eip7702-aa-demo.vercel.app bun run test:e2e   # same suite against the deployment
+PROD_URL=https://eip7702-aa-demo.vercel.app bun run smoke:prod  # quick production smoke test
 ```
 
 What is actually proven:

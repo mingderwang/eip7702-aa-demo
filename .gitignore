@@ -4,12 +4,13 @@ node_modules/
 # build output
 dist/
 .astro/
-.vercel/
 .output/
+.vercel/
 
 # env & secrets
 .env
 .env.*
+.env.local
 !.env.example
 
 # generated compiler output

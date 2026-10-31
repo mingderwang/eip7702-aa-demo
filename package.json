@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.23.4"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "astro dev",
@@ -16,7 +16,9 @@
     "test": "bun test tests/unit tests/integration",
     "test:e2e": "playwright test",
     "test:all": "bun run test && bun run test:e2e",
-    "check": "astro check"
+    "check": "astro check",
+    "smoke:prod": "bun run scripts/smoke-prod.ts",
+    "demo:local": "bun run scripts/local.ts"
   },
   "dependencies": {
     "@astrojs/vercel": "^11.0.17",
